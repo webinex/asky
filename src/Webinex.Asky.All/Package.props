@@ -1,0 +1,15 @@
+﻿<Project>
+  <PropertyGroup>
+    <Title>Webinex Asky</Title>
+    <PackageVersion>1.1.0</PackageVersion>
+    <Authors>Webinex Dev</Authors>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Description>Easy to use client driven query parameters</Description>
+    <Copyright>Webinex Dev</Copyright>
+    <PackageProjectUrl>https://github.com/webinex/asky</PackageProjectUrl>
+    <License>https://github.com/webinex/asky/LICENSE</License>
+    <RepositoryUrl>https://github.com/webinex/asky</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+</Project>

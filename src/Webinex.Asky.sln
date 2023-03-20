@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Webinex.Asky", "Webinex.Asky\Webinex.Asky.csproj", "{AD56F454-065D-4CD2-9508-6BA1D245BD52}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Webinex.Asky.All", "Webinex.Asky.All\Webinex.Asky.All.csproj", "{1760B797-9468-4114-A955-CE5D17039317}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Webinex.Asky.Tests", "Webinex.Asky.Tests\Webinex.Asky.Tests.csproj", "{1B26EB08-31AB-4952-BE5B-144F8BF1B904}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AD56F454-065D-4CD2-9508-6BA1D245BD52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD56F454-065D-4CD2-9508-6BA1D245BD52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD56F454-065D-4CD2-9508-6BA1D245BD52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD56F454-065D-4CD2-9508-6BA1D245BD52}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1760B797-9468-4114-A955-CE5D17039317}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1760B797-9468-4114-A955-CE5D17039317}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1760B797-9468-4114-A955-CE5D17039317}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1760B797-9468-4114-A955-CE5D17039317}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B26EB08-31AB-4952-BE5B-144F8BF1B904}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B26EB08-31AB-4952-BE5B-144F8BF1B904}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B26EB08-31AB-4952-BE5B-144F8BF1B904}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B26EB08-31AB-4952-BE5B-144F8BF1B904}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

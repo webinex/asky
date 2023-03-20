@@ -1,0 +1,61 @@
+name: Webinex / Asky / CI
+
+pr:
+  - master
+trigger:
+  branches:
+    include:
+      - master
+
+pool:
+  vmImage: "ubuntu-latest"
+
+steps:
+  - task: UseDotNet@2
+    displayName: ".NET SDK"
+    inputs:
+      workingDirectory: src
+      useGlobalJson: true
+
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '16.13.x'
+
+  - task: DotNetCoreCLI@2
+    displayName: "Restore packages"
+    inputs:
+      command: "restore"
+      projects: "src/Webinex.Asky.sln"
+      verbosityRestore: normal
+
+  - task: DotNetCoreCLI@2
+    displayName: "Build"
+    inputs:
+      command: "build"
+      arguments: "--no-restore"
+      projects: "src/Webinex.Asky.sln"
+
+  - task: DotNetCoreCLI@2
+    displayName: "Test"
+    inputs:
+      command: "test"
+      projects: "**/*.csproj"
+      arguments: "--no-build"
+
+  - ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    - task: PowerShell@2
+      displayName: Build & Publish Nuget package
+      inputs:
+        filePath: scripts/Publish-NugetPackages.ps1
+        arguments: "-ApiKey $(NUGET_API_KEY)"
+        errorActionPreference: stop
+        failOnStderr: false
+
+  - ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    - task: PowerShell@2
+      displayName: Build & Publish Npm Package
+      inputs:
+        filePath: scripts/Publish-NpmPackages.ps1
+        arguments: "-AuthToken $(NPM_AUTH_TOKEN) -KeepNpmRc $true"
+        errorActionPreference: stop
+        failOnStderr: false
