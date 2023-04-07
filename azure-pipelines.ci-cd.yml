@@ -18,8 +18,9 @@ steps:
       useGlobalJson: true
 
   - task: NodeTool@0
+    displayName: "NodeJS"
     inputs:
-      versionSpec: '16.13.x'
+      versionSpec: "16.14.x"
 
   - task: DotNetCoreCLI@2
     displayName: "Restore packages"
@@ -43,19 +44,24 @@ steps:
       arguments: "--no-build"
 
   - ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
-    - task: PowerShell@2
-      displayName: Build & Publish Nuget package
-      inputs:
-        filePath: scripts/Publish-NugetPackages.ps1
-        arguments: "-ApiKey $(NUGET_API_KEY)"
-        errorActionPreference: stop
-        failOnStderr: false
+      - task: PowerShell@2
+        displayName: Build & Publish Nuget package
+        inputs:
+          filePath: scripts/Publish-NugetPackages.ps1
+          arguments: "-ApiKey $(NUGET_API_KEY)"
+          errorActionPreference: stop
+          failOnStderr: false
 
   - ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
-    - task: PowerShell@2
-      displayName: Build & Publish Npm Package
-      inputs:
-        filePath: scripts/Publish-NpmPackages.ps1
-        arguments: "-AuthToken $(NPM_AUTH_TOKEN) -KeepNpmRc $true"
-        errorActionPreference: stop
-        failOnStderr: false
+      - script: |
+          git config --global user.name "${GH_NAME}"
+          git config --global user.email "${GH_EMAIL}"
+          echo "machine github.com login ${GH_NAME} password ${GH_TOKEN}" > ~/.netrc
+          yarn install
+          GIT_USER="${GH_NAME}" yarn deploy
+        displayName: Build & Publish Docs
+        env:
+          GH_NAME: "webinex"
+          GH_EMAIL: "webinex.dev@gmail.com"
+          GH_TOKEN: $(GITHUB_PAT)
+        workingDirectory: "docs"
