@@ -75,7 +75,7 @@ internal class AndFilterTests
     [Test]
     public void When1_ShouldThrow()
     {
-        Assert.Throws<ArgumentException>(() => FilterRule.And(FilterRule.Eq(ITEM1, "1243")));
+        Assert.Throws<ArgumentException>(() => FilterRule.And(new[] { FilterRule.Eq(ITEM1, "1243") }));
     }
 
     private void WithValues(params (string val1, int val2)[] values)

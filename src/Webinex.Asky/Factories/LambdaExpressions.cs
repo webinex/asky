@@ -62,6 +62,35 @@ internal static class LambdaExpressions
             parameter);
     }
 
+    internal static Expression<Func<TEntity, object>> Child<TEntity, TChild>(
+        Expression<Func<TEntity, TChild>> selector,
+        Expression<Func<TChild, object>> childSelector)
+    {
+        var parameter = Expression.Parameter(typeof(TEntity));
+        var propertyAccessExpression = PropertyAccessExpression(selector, parameter);
+        var newSelector =
+            new ReplaceExpressionVisitor(childSelector.Parameters[0], propertyAccessExpression).Visit(childSelector.Body)!;
+        return Expression.Lambda<Func<TEntity, object>>(newSelector, parameter);
+    }
+
+    private static Expression PropertyAccessExpression<TEntity, TResult>(
+        Expression<Func<TEntity, TResult>> selector,
+        ParameterExpression parameter)
+    {
+        return ReplaceParameter(
+            PropertyAccessExpression(selector.Body),
+            selector.Parameters[0],
+            parameter);
+    }
+
+    private static Expression ReplaceParameter(
+        Expression expression,
+        ParameterExpression oldParameter,
+        ParameterExpression newParameter)
+    {
+        return new ReplaceExpressionVisitor(oldParameter, newParameter).Visit(expression)!;
+    }
+
     internal static MemberExpression PropertyAccessExpression(Expression expression)
     {
         switch (expression)
@@ -81,6 +110,29 @@ internal static class LambdaExpressions
             default:
                 throw new InvalidOperationException(
                     $"Unable to resolve property access from expression of type {expression.GetType().Name}");
+        }
+    }
+
+    private class ReplaceExpressionVisitor
+        : ExpressionVisitor
+    {
+        private readonly Expression _oldValue;
+        private readonly Expression _newValue;
+
+        public ReplaceExpressionVisitor(Expression oldValue, Expression newValue)
+        {
+            _oldValue = oldValue;
+            _newValue = newValue;
+        }
+
+        public override Expression? Visit(Expression? node)
+        {
+            if (node == _oldValue)
+            {
+                return _newValue;
+            }
+
+            return base.Visit(node);
         }
     }
 }

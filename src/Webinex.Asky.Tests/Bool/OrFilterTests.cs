@@ -61,7 +61,7 @@ internal class OrFilterTests
     [Test]
     public void When1_ShouldThrow()
     {
-        Assert.Throws<ArgumentException>(() => FilterRule.Or(FilterRule.Eq(ITEM1, "1243")));
+        Assert.Throws<ArgumentException>(() => FilterRule.Or(new[] { FilterRule.Eq(ITEM1, "1243") }));
     }
 
     [Test]

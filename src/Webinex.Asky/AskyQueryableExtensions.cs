@@ -39,8 +39,8 @@ public static class AskyQueryableExtensions
         if (!rules.Any())
             throw new ArgumentException("Might contain at least one item", nameof(rules));
 
-        var rootSort = queryable.SortBy(fieldMap.Required(rules.ElementAt(0).FieldId), rules.ElementAt(0).Dir);
-        return rules.Aggregate(rootSort, (q, arg) => q.ThenSortBy(fieldMap.Required(arg.FieldId), arg.Dir));
+        var rootSort = queryable.SortBy(fieldMap.Resolve(rules.ElementAt(0).FieldId), rules.ElementAt(0).Dir);
+        return rules.Aggregate(rootSort, (q, arg) => q.ThenSortBy(fieldMap.Resolve(arg.FieldId), arg.Dir));
     }
 
     public static IOrderedQueryable<TEntity> SortBy<TEntity>(

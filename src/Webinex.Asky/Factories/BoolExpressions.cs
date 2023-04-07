@@ -37,7 +37,7 @@ internal static class BoolExpressions
         Expression<Func<T, bool>> expr1,
         Expression<Func<T, bool>> expr2)
     {
-        return GetAggregatedExpression(Expression.Or, expr1, expr2);
+        return GetAggregatedExpression(Expression.OrElse, expr1, expr2);
     }
 
     private static Expression<Func<T, bool>> GetAggregatedExpression<T>(

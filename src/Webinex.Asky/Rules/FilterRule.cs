@@ -1,5 +1,4 @@
-﻿
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Webinex.Asky;
@@ -33,75 +32,80 @@ public abstract class FilterRule : EqualityComparable
     {
         return new ValueFilterRule(fieldId, FilterOperator.EQ, value);
     }
-        
+
     public static ValueFilterRule NotEq(string fieldId, object value)
     {
         return new ValueFilterRule(fieldId, FilterOperator.NOT_EQ, value);
     }
-        
+
     public static ValueFilterRule Gt(string fieldId, object value)
     {
         return new ValueFilterRule(fieldId, FilterOperator.GT, value);
     }
-        
+
     public static ValueFilterRule Gte(string fieldId, object value)
     {
         return new ValueFilterRule(fieldId, FilterOperator.GTE, value);
     }
-        
+
     public static ValueFilterRule Lt(string fieldId, object value)
     {
         return new ValueFilterRule(fieldId, FilterOperator.LT, value);
     }
-        
+
     public static ValueFilterRule Lte(string fieldId, object value)
     {
         return new ValueFilterRule(fieldId, FilterOperator.LTE, value);
     }
-        
+
     public static ValueFilterRule Contains(string fieldId, object value)
     {
         return new ValueFilterRule(fieldId, FilterOperator.CONTAINS, value);
     }
-        
+
     public static ValueFilterRule Contains(string fieldId, string value)
     {
         return new ValueFilterRule(fieldId, FilterOperator.CONTAINS, value);
     }
-        
+
     public static ValueFilterRule NotContains(string fieldId, object value)
     {
         return new ValueFilterRule(fieldId, FilterOperator.NOT_CONTAINS, value);
     }
-        
+
     public static ValueFilterRule NotContains(string fieldId, string value)
     {
         return new ValueFilterRule(fieldId, FilterOperator.NOT_CONTAINS, value);
     }
-        
+
     public static CollectionFilterRule In<T>(string fieldId, T[] values)
     {
         return new CollectionFilterRule(fieldId, FilterOperator.IN, values.Cast<object>().ToArray());
     }
-        
+
     public static CollectionFilterRule In(string fieldId, object[] values)
     {
         return new CollectionFilterRule(fieldId, FilterOperator.IN, values);
     }
-        
+
     public static CollectionFilterRule NotIn<T>(string fieldId, T[] values)
     {
         return new CollectionFilterRule(fieldId, FilterOperator.NOT_IN, values.Cast<object>().ToArray());
     }
-        
+
     public static CollectionFilterRule NotIn(string fieldId, object[] values)
     {
         return new CollectionFilterRule(fieldId, FilterOperator.NOT_IN, values);
     }
-        
-    public static BoolFilterRule Or(params FilterRule[] filters)
+
+    public static BoolFilterRule Or(IEnumerable<FilterRule> filters)
     {
-        return new BoolFilterRule(FilterOperator.OR, filters);
+        return new BoolFilterRule(FilterOperator.OR, filters.ToArray());
+    }
+
+    public static BoolFilterRule Or(FilterRule x, FilterRule y, params FilterRule[] more)
+    {
+        return new BoolFilterRule(FilterOperator.OR, new[] { x, y }.Concat(more).ToArray());
     }
 
     public static ChildCollectionFilterRule Any(string fieldId, FilterRule rule)
@@ -113,11 +117,15 @@ public abstract class FilterRule : EqualityComparable
     {
         return new ChildCollectionFilterRule(FilterOperator.ALL, fieldId, rule);
     }
-        
-    // TODO: s.skalaban to rewrite to avoid situation with only one filter
-    public static BoolFilterRule And(params FilterRule[] filters)
+
+    public static BoolFilterRule And(FilterRule x, FilterRule y, params FilterRule[] more)
     {
-        return new BoolFilterRule(FilterOperator.AND, filters);
+        return new BoolFilterRule(FilterOperator.AND, new[] { x, y }.Concat(more).ToArray());
+    }
+
+    public static BoolFilterRule And(IEnumerable<FilterRule> filters)
+    {
+        return new BoolFilterRule(FilterOperator.AND, filters.ToArray());
     }
 
     public static FilterRule? FromJson(string? jsonString, JsonSerializerOptions options)
@@ -136,7 +144,7 @@ public abstract class FilterRule : EqualityComparable
         {
             return null;
         }
-        
+
         var options = new JsonSerializerOptions(DEFAULT_JSON_SERIALIZER_OPTIONS)
         {
             Converters = { new AskyFilterJsonConverter<TEntity>(fieldMap) },

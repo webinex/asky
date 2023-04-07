@@ -17,17 +17,17 @@ public static class FilterOperator
     public const string ANY = "any";
     public const string ALL = "all";
 
-    public static readonly HashSet<string> ALL_VALUES = new HashSet<string>
+    public static readonly HashSet<string> ALL_VALUES = new()
     {
         EQ, NOT_EQ, GTE, GT, LTE, LT, CONTAINS, NOT_CONTAINS,
     };
 
-    public static readonly HashSet<string> ALL_BOOL = new HashSet<string>
+    public static readonly HashSet<string> ALL_BOOL = new()
     {
         AND, OR,
     };
 
-    public static readonly HashSet<string> ALL_COLLECTION = new HashSet<string>
+    public static readonly HashSet<string> ALL_COLLECTION = new()
     {
         IN, NOT_IN,
     };

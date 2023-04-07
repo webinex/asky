@@ -36,7 +36,7 @@ public static class AskyExpressionFactory
 
     private static Expression<Func<T, bool>> Create<T>(IAskyFieldMap<T> fieldMap, ValueFilterRule filter)
     {
-        var field = fieldMap.Required(filter.FieldId);
+        var field = fieldMap.Resolve(filter.FieldId);
         var value = filter.Value;
 
         return filter.Operator switch
@@ -55,7 +55,7 @@ public static class AskyExpressionFactory
 
     private static Expression<Func<T, bool>> Create<T>(IAskyFieldMap<T> fieldMap, CollectionFilterRule filter)
     {
-        var field = fieldMap.Required(filter.FieldId);
+        var field = fieldMap.Resolve(filter.FieldId);
         var values = filter.Values;
 
         return filter.Operator switch
@@ -68,7 +68,7 @@ public static class AskyExpressionFactory
 
     private static Expression<Func<T, bool>> Create<T>(IAskyFieldMap<T> fieldMap, ChildCollectionFilterRule rule)
     {
-        var field = fieldMap.Required(rule.FieldId);
+        var field = fieldMap.Resolve(rule.FieldId);
         var collectionValueType = LambdaExpressions.ReturnCollectionValueType(field);
         var factoryType =
             typeof(AskyChildCollectionExpressionFactory<,>).MakeGenericType(typeof(T), collectionValueType);
