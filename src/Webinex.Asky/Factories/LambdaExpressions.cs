@@ -25,13 +25,7 @@ internal static class LambdaExpressions
     {
         selector = selector ?? throw new ArgumentNullException(nameof(selector));
         var collectionType = ReturnType(selector);
-        
-        var valueType = collectionType
-            .GetInterfaces()
-            .Where(t => t.IsGenericType
-                        && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-            .Select(t => t.GetGenericArguments()[0])
-            .FirstOrDefault();
+        var valueType = TypeUtil.GetGenericEnumerableImplValueType(collectionType);
 
         return valueType ??
                throw new InvalidOperationException($"{collectionType.Name} doesn't inherit generic enumerable");

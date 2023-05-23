@@ -32,11 +32,16 @@ public static class FilterOperator
         IN, NOT_IN,
     };
 
-    public static readonly HashSet<string> ALL_CHILD_COLLECTION = new HashSet<string>
+    public static readonly HashSet<string> ALL_CHILD_COLLECTION = new()
     {
         ANY, ALL,
     };
 
     public static readonly HashSet<string> ALL_OPERATORS =
         new(ALL_VALUES.Concat(ALL_BOOL).Concat(ALL_COLLECTION).Concat(ALL_CHILD_COLLECTION));
+
+    public static readonly HashSet<string> ALL_COLLECTION_FIELD = new()
+    {
+        CONTAINS, NOT_CONTAINS,
+    };
 }

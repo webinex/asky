@@ -35,7 +35,8 @@ public class AskyFilterJsonConverter<T> : JsonConverter<FilterRule>
         var @operator = filterBase!.Operator;
 
         if (FilterOperator.ALL_VALUES.Contains(@operator))
-            return DeserializeFilterRuleWithValue(typeof(ValueFilterRule<>), readerAtStart, options, filterBase);
+            return DeserializeFilterRuleWithValue(typeof(ValueFilterRule<>), readerAtStart, options, filterBase,
+                @operator);
 
         if (FilterOperator.ALL_BOOL.Contains(@operator))
             return JsonSerializer.Deserialize<BoolFilterRule>(ref readerAtStart, options)!;
@@ -44,7 +45,8 @@ public class AskyFilterJsonConverter<T> : JsonConverter<FilterRule>
             return JsonSerializer.Deserialize<ChildCollectionFilterRule>(ref readerAtStart, options)!;
 
         if (FilterOperator.ALL_COLLECTION.Contains(@operator))
-            return DeserializeFilterRuleWithValue(typeof(CollectionFilterRule<>), readerAtStart, options, filterBase);
+            return DeserializeFilterRuleWithValue(typeof(CollectionFilterRule<>), readerAtStart, options, filterBase,
+                @operator);
 
         throw new InvalidOperationException($"Unknown operator {@operator}");
     }
@@ -53,9 +55,13 @@ public class AskyFilterJsonConverter<T> : JsonConverter<FilterRule>
         Type valuedRuleType,
         Utf8JsonReader readerAtStart,
         JsonSerializerOptions options,
-        FilterBase filterBase)
+        FilterBase filterBase,
+        string @operator)
     {
-        var valueType = ResolveValueType(filterBase);
+        var fieldType = ResolveValueType(filterBase);
+        var valueType = FilterOperator.ALL_COLLECTION_FIELD.Contains(@operator)
+            ? TypeUtil.GetGenericEnumerableImplValueType(fieldType)
+            : fieldType;
 
         var valueFilterRuleType = valuedRuleType.MakeGenericType(typeof(T), valueType);
         var valueFilterRule =
@@ -71,7 +77,7 @@ public class AskyFilterJsonConverter<T> : JsonConverter<FilterRule>
             throw new InvalidOperationException(
                 $"{nameof(ValueFilterRule)} might have {nameof(ValueFilterRule.FieldId)}");
         }
-        
+
         var expression = _fieldMap[filterBase.FieldId!];
         if (expression == null)
         {
@@ -91,7 +97,7 @@ public class AskyFilterJsonConverter<T> : JsonConverter<FilterRule>
         public string Operator { get; set; } = null!;
         public string? FieldId { get; set; }
     }
-    
+
     private interface IValueFilterRuleConvertible
     {
         FilterRule ToFilterRule();
@@ -105,7 +111,7 @@ public class AskyFilterJsonConverter<T> : JsonConverter<FilterRule>
 
         public FilterRule ToFilterRule() => new ValueFilterRule(FieldId, Operator, Value!);
     }
-    
+
     private class CollectionFilterRule<TValue> : IValueFilterRuleConvertible
     {
         public string Operator { get; set; } = null!;
