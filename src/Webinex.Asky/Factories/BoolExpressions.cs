@@ -46,40 +46,9 @@ internal static class BoolExpressions
         Expression<Func<T, bool>> expr2)
     {
         var parameter = Expression.Parameter(typeof(T));
-        var left = ReplaceParameter(expr1.Body, expr1.Parameters[0], parameter);
-        var right = ReplaceParameter(expr2.Body, expr2.Parameters[0], parameter);
+        var left = ParameterReplacer.Replace(expr1.Body, expr1.Parameters[0], parameter);
+        var right = ParameterReplacer.Replace(expr2.Body, expr2.Parameters[0], parameter);
 
         return Expression.Lambda<Func<T, bool>>(aggregate(left, right), parameter);
-    }
-
-    internal static Expression ReplaceParameter(
-        Expression expression,
-        ParameterExpression oldParameter,
-        ParameterExpression newParameter)
-    {
-        return new ReplaceExpressionVisitor(oldParameter, newParameter).Visit(expression)!;
-    }
-
-    private class ReplaceExpressionVisitor
-        : ExpressionVisitor
-    {
-        private readonly Expression _oldValue;
-        private readonly Expression _newValue;
-
-        public ReplaceExpressionVisitor(Expression oldValue, Expression newValue)
-        {
-            _oldValue = oldValue;
-            _newValue = newValue;
-        }
-
-        public override Expression? Visit(Expression? node)
-        {
-            if (node == _oldValue)
-            {
-                return _newValue;
-            }
-
-            return base.Visit(node);
-        }
     }
 }

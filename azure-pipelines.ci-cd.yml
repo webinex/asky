@@ -6,6 +6,7 @@ trigger:
   branches:
     include:
       - master
+      - release/*
 
 pool:
   vmImage: "ubuntu-latest"
@@ -43,7 +44,7 @@ steps:
       projects: "**/*.csproj"
       arguments: "--no-build"
 
-  - ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+  - ${{ if or(eq(variables['Build.SourceBranchName'], 'master'), startsWith(variables['Build.SourceBranchName'], 'release/')) }}:
       - task: PowerShell@2
         displayName: Build & Publish Nuget package
         inputs:
@@ -52,7 +53,7 @@ steps:
           errorActionPreference: stop
           failOnStderr: false
 
-  - ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+  - ${{ if or(eq(variables['Build.SourceBranchName'], 'master'), startsWith(variables['Build.SourceBranchName'], 'release/')) }}:
       - script: |
           git config --global user.name "${GH_NAME}"
           git config --global user.email "${GH_EMAIL}"
