@@ -5,8 +5,8 @@ namespace Webinex.Asky;
 
 internal interface IAskyChildCollectionExpressionFactory<TEntity>
 {
-    Expression<Func<TEntity, bool>> Any(Expression<Func<TEntity, object>> selector, FilterRule rule);
-    Expression<Func<TEntity, bool>> All(Expression<Func<TEntity, object>> selector, FilterRule rule);
+    Expression<Func<TEntity, bool>> Any(Expression<Func<TEntity, object>> selector, FilterRule rule, FilterOptions options);
+    Expression<Func<TEntity, bool>> All(Expression<Func<TEntity, object>> selector, FilterRule rule, FilterOptions options);
 }
 
 internal abstract class AskyChildCollectionExpressionFactory
@@ -32,15 +32,15 @@ internal class AskyChildCollectionExpressionFactory<TEntity, TCollectionValue> :
         _entityFieldMap = entityFieldMap;
     }
 
-    public Expression<Func<TEntity, bool>> Any(Expression<Func<TEntity, object>> selector, FilterRule rule)
+    public Expression<Func<TEntity, bool>> Any(Expression<Func<TEntity, object>> selector, FilterRule rule, FilterOptions options)
     {
-        var predicate = AskyExpressionFactory.Create(this, rule);
+        var predicate = AskyExpressionFactory.Create(this, rule, options);
         return FilterExpressions.Any(selector, predicate);
     }
 
-    public Expression<Func<TEntity, bool>> All(Expression<Func<TEntity, object>> selector, FilterRule rule)
+    public Expression<Func<TEntity, bool>> All(Expression<Func<TEntity, object>> selector, FilterRule rule, FilterOptions options)
     {
-        var predicate = AskyExpressionFactory.Create(this, rule);
+        var predicate = AskyExpressionFactory.Create(this, rule, options);
         return FilterExpressions.All(selector, predicate);
     }
 

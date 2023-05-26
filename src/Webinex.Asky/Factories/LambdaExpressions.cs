@@ -17,8 +17,37 @@ internal static class LambdaExpressions
         {
             return methodCall.Method.ReturnType;
         }
-            
-        return ((PropertyInfo)PropertyAccessExpression(selector.Body).Member).PropertyType;
+
+        var accessExpression = Accessor(selector.Body);
+        return GetAccessExpressionReturnType(accessExpression);
+    }
+
+    private static Type GetAccessExpressionReturnType(Expression expression)
+    {
+        switch (expression)
+        {
+            case MemberExpression member when member.Member.MemberType == MemberTypes.Property:
+                return ((PropertyInfo)member.Member).PropertyType;
+            case UnaryExpression unary when unary.NodeType == ExpressionType.Convert:
+                return GetAccessExpressionReturnType(unary.Operand);
+            case ConstantExpression constant:
+                return constant.Type;
+            case ConditionalExpression condition:
+                var falseType = GetAccessExpressionReturnType(condition.IfFalse);
+                var trueType = GetAccessExpressionReturnType(condition.IfTrue);
+                var falseUnderlyingType = Nullable.GetUnderlyingType(falseType);
+                var trueUnderlyingType = Nullable.GetUnderlyingType(trueType);
+                var falseNotNullType = falseUnderlyingType ?? falseType;
+                var trueNotNullType = trueUnderlyingType ?? trueType;
+
+                if (falseNotNullType != trueNotNullType)
+                    throw new InvalidOperationException(
+                        $"Conditional expression types doesn't match IfFalse = {falseType.Name}, IfTrue = {trueType.Name}");
+                return trueUnderlyingType != null ? trueType : falseType;
+            default:
+                throw new InvalidOperationException(
+                    $"Unable to resolve access expression return type of expression of type {expression.GetType().Name}");
+        }
     }
 
     internal static Type ReturnCollectionValueType<TEntity>(Expression<Func<TEntity, object>> selector)
@@ -42,16 +71,16 @@ internal static class LambdaExpressions
     private static Expression<Func<TEntity, TKey>> ReplaceReturnTypeToTypedInternal<TEntity, TKey>(
         Expression<Func<TEntity, object>> selector)
     {
-        var normalizedSelector = PropertyAccessExpression(selector.Body);
+        var normalizedSelector = Accessor(selector.Body);
         return Expression.Lambda<Func<TEntity, TKey>>(normalizedSelector, selector.Parameters.ToArray());
     }
 
-    internal static Expression PropertyAccessExpression<TEntity>(
+    internal static Expression Accessor<TEntity>(
         Expression<Func<TEntity, object>> selector,
         ParameterExpression parameter)
     {
-        return BoolExpressions.ReplaceParameter(
-            PropertyAccessExpression(selector.Body),
+        return ParameterReplacer.Replace(
+            Accessor(selector.Body),
             selector.Parameters[0],
             parameter);
     }
@@ -61,31 +90,23 @@ internal static class LambdaExpressions
         Expression<Func<TChild, object>> childSelector)
     {
         var parameter = Expression.Parameter(typeof(TEntity));
-        var propertyAccessExpression = PropertyAccessExpression(selector, parameter);
-        var newSelector =
-            new ReplaceExpressionVisitor(childSelector.Parameters[0], propertyAccessExpression).Visit(childSelector.Body)!;
+        var propertyAccessExpression = Accessor(selector, parameter);
+        var newSelector = ParameterReplacer.Replace(childSelector.Body, childSelector.Parameters[0],
+            propertyAccessExpression);
         return Expression.Lambda<Func<TEntity, object>>(newSelector, parameter);
     }
 
-    private static Expression PropertyAccessExpression<TEntity, TResult>(
+    private static Expression Accessor<TEntity, TResult>(
         Expression<Func<TEntity, TResult>> selector,
         ParameterExpression parameter)
     {
-        return ReplaceParameter(
-            PropertyAccessExpression(selector.Body),
+        return ParameterReplacer.Replace(
+            Accessor(selector.Body),
             selector.Parameters[0],
             parameter);
     }
 
-    private static Expression ReplaceParameter(
-        Expression expression,
-        ParameterExpression oldParameter,
-        ParameterExpression newParameter)
-    {
-        return new ReplaceExpressionVisitor(oldParameter, newParameter).Visit(expression)!;
-    }
-
-    internal static MemberExpression PropertyAccessExpression(Expression expression)
+    internal static Expression Accessor(Expression expression)
     {
         switch (expression)
         {
@@ -95,38 +116,22 @@ internal static class LambdaExpressions
                 return memberExpression;
 
             case UnaryExpression unaryExpression:
-                if (unaryExpression.NodeType == ExpressionType.Convert &&
-                    unaryExpression.Operand.NodeType == ExpressionType.MemberAccess)
-                    return PropertyAccessExpression(unaryExpression.Operand);
+                if (unaryExpression.NodeType == ExpressionType.Convert)
+                    return Accessor(unaryExpression.Operand);
                 throw new InvalidOperationException(
                     $"Unable to resolve property from unary expression {unaryExpression.NodeType}");
 
+            case ConditionalExpression conditionalExpression:
+                return conditionalExpression;
+
             default:
-                throw new InvalidOperationException(
-                    $"Unable to resolve property access from expression of type {expression.GetType().Name}");
+                throw ThrowUnableToResolve(expression);
         }
     }
 
-    private class ReplaceExpressionVisitor
-        : ExpressionVisitor
+    private static Exception ThrowUnableToResolve(Expression expression)
     {
-        private readonly Expression _oldValue;
-        private readonly Expression _newValue;
-
-        public ReplaceExpressionVisitor(Expression oldValue, Expression newValue)
-        {
-            _oldValue = oldValue;
-            _newValue = newValue;
-        }
-
-        public override Expression? Visit(Expression? node)
-        {
-            if (node == _oldValue)
-            {
-                return _newValue;
-            }
-
-            return base.Visit(node);
-        }
+        throw new InvalidOperationException(
+            $"Unable to resolve property access from expression of type {expression.GetType().Name}");
     }
 }

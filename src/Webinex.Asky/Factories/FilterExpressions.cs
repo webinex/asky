@@ -10,7 +10,7 @@ internal static class FilterExpressions
     {
         var parameter = Expression.Parameter(typeof(TEntity));
         var valueType = LambdaExpressions.ReturnType(selector);
-        var propertyExpression = LambdaExpressions.PropertyAccessExpression(selector, parameter);
+        var propertyExpression = LambdaExpressions.Accessor(selector, parameter);
         var valueExpression = Expression.Constant(value, valueType);
 
         return Expression.Lambda<Func<TEntity, bool>>(
@@ -33,7 +33,7 @@ internal static class FilterExpressions
         IEnumerable<object> values)
     {
         var parameter = Expression.Parameter(typeof(TEntity));
-        var propertyAccessExpression = LambdaExpressions.PropertyAccessExpression(selector, parameter);
+        var propertyAccessExpression = LambdaExpressions.Accessor(selector, parameter);
         var valueType = LambdaExpressions.ReturnType(selector);
 
         var containsMethodInfo =
@@ -69,7 +69,7 @@ internal static class FilterExpressions
     {
         var parameter = Expression.Parameter(typeof(TEntity));
         var valueType = LambdaExpressions.ReturnType(selector);
-        var propertyAccessExpression = LambdaExpressions.PropertyAccessExpression(selector, parameter);
+        var propertyAccessExpression = LambdaExpressions.Accessor(selector, parameter);
 
         return Expression.Lambda<Func<TEntity, bool>>(
             Expression.LessThanOrEqual(
@@ -84,7 +84,7 @@ internal static class FilterExpressions
     {
         var parameter = Expression.Parameter(typeof(TEntity));
         var valueType = LambdaExpressions.ReturnType(selector);
-        var propertyAccessExpression = LambdaExpressions.PropertyAccessExpression(selector, parameter);
+        var propertyAccessExpression = LambdaExpressions.Accessor(selector, parameter);
 
         return Expression.Lambda<Func<TEntity, bool>>(
             Expression.LessThan(
@@ -99,7 +99,7 @@ internal static class FilterExpressions
     {
         var parameter = Expression.Parameter(typeof(TEntity));
         var valueType = LambdaExpressions.ReturnType(selector);
-        var propertyAccessExpression = LambdaExpressions.PropertyAccessExpression(selector, parameter);
+        var propertyAccessExpression = LambdaExpressions.Accessor(selector, parameter);
 
         return Expression.Lambda<Func<TEntity, bool>>(
             Expression.GreaterThanOrEqual(
@@ -114,7 +114,7 @@ internal static class FilterExpressions
     {
         var parameter = Expression.Parameter(typeof(TEntity));
         var valueType = LambdaExpressions.ReturnType(selector);
-        var propertyAccessExpression = LambdaExpressions.PropertyAccessExpression(selector, parameter);
+        var propertyAccessExpression = LambdaExpressions.Accessor(selector, parameter);
 
         return Expression.Lambda<Func<TEntity, bool>>(
             Expression.GreaterThan(
@@ -135,7 +135,7 @@ internal static class FilterExpressions
         }
 
         var parameter = Expression.Parameter(typeof(TEntity));
-        var propertyAccessExpression = LambdaExpressions.PropertyAccessExpression(selector, parameter);
+        var propertyAccessExpression = LambdaExpressions.Accessor(selector, parameter);
 
         var method = typeof(string).GetMethod(nameof(string.Contains), new[] { typeof(string) });
         if (method == null)
@@ -176,7 +176,7 @@ internal static class FilterExpressions
             .MakeGenericMethod(collectionValueType);
 
         var parameter = Expression.Parameter(typeof(TEntity));
-        var propertyAccessExpression = LambdaExpressions.PropertyAccessExpression(selector, parameter);
+        var propertyAccessExpression = LambdaExpressions.Accessor(selector, parameter);
 
         var methodCallExpression = Expression.Call(null, anyMethod, new[] { propertyAccessExpression, predicate });
         return Expression.Lambda<Func<TEntity, bool>>(methodCallExpression, parameter);
@@ -193,7 +193,7 @@ internal static class FilterExpressions
             .MakeGenericMethod(collectionValueType);
 
         var parameter = Expression.Parameter(typeof(TEntity));
-        var propertyAccessExpression = LambdaExpressions.PropertyAccessExpression(selector, parameter);
+        var propertyAccessExpression = LambdaExpressions.Accessor(selector, parameter);
 
         var methodCallExpression = Expression.Call(null, anyMethod, new[] { propertyAccessExpression, predicate });
         return Expression.Lambda<Func<TEntity, bool>>(methodCallExpression, parameter);
