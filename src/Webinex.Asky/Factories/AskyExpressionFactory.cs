@@ -7,8 +7,15 @@ public static class AskyExpressionFactory
 {
     public static Expression<Func<T, bool>> Create<T>(
         IAskyFieldMap<T> fieldMap,
+        FilterRule filter)
+    {
+        return Create(fieldMap, filter, FilterOptions.None);
+    }
+
+    public static Expression<Func<T, bool>> Create<T>(
+        IAskyFieldMap<T> fieldMap,
         FilterRule filter,
-        FilterOptions options = FilterOptions.None)
+        FilterOptions options)
     {
         fieldMap = fieldMap ?? throw new ArgumentNullException(nameof(fieldMap));
         filter = filter ?? throw new ArgumentNullException(nameof(filter));
