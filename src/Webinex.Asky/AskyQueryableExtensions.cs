@@ -8,8 +8,16 @@ public static class AskyQueryableExtensions
     public static IQueryable<TEntity> Where<TEntity>(
         this IQueryable<TEntity> queryable,
         IAskyFieldMap<TEntity> fieldMap,
+        FilterRule filter)
+    {
+        return Where(queryable, fieldMap, filter, FilterOptions.None);
+    }
+
+    public static IQueryable<TEntity> Where<TEntity>(
+        this IQueryable<TEntity> queryable,
+        IAskyFieldMap<TEntity> fieldMap,
         FilterRule filter,
-        FilterOptions options = FilterOptions.None)
+        FilterOptions options)
     {
         queryable = queryable ?? throw new ArgumentNullException(nameof(queryable));
         fieldMap = fieldMap ?? throw new ArgumentNullException(nameof(fieldMap));
