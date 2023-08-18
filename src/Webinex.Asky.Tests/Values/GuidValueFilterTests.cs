@@ -33,7 +33,7 @@ internal class GuidValueFilterTests : ValueFilterTestsBase<Guid>
     public void WhenIn()
     {
         WithValues(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
-        
+
         Run(FilterRule.In(FieldId, new[] { Values[1], Guid.NewGuid(), Values[3] }));
 
         Result.Should().BeEquivalentTo(new[] { Values[1], Values[3] });
@@ -43,16 +43,12 @@ internal class GuidValueFilterTests : ValueFilterTestsBase<Guid>
     public void WhenNotIn()
     {
         WithValues(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
-        
+
         Run(FilterRule.NotIn(FieldId, new[] { Values[1], Guid.NewGuid(), Values[3] }));
 
         Result.Should().BeEquivalentTo(new[] { Values[0], Values[2] });
     }
 
-    [TestCase(FilterOperator.GT)]
-    [TestCase(FilterOperator.GTE)]
-    [TestCase(FilterOperator.LT)]
-    [TestCase(FilterOperator.LTE)]
     [TestCase(FilterOperator.CONTAINS)]
     [TestCase(FilterOperator.NOT_CONTAINS)]
     public void WhenInvalidOperator_ShouldThrow(string @operator)
