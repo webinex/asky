@@ -59,8 +59,7 @@ public class AskyFilterJsonConverter<T> : JsonConverter<FilterRule>
         string @operator)
     {
         var fieldType = ResolveValueType(filterBase);
-        var valueType = FilterOperator.ALL_COLLECTION_FIELD.Contains(@operator) ||
-                        FilterOperator.ALL_COLLECTION.Contains(@operator)
+        var valueType = FilterOperator.ALL_COLLECTION_FIELD.Contains(@operator)
             ? TypeUtil.GetGenericEnumerableImplValueType(fieldType)
             : fieldType;
 

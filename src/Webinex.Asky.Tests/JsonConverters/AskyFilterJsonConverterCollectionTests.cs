@@ -14,7 +14,7 @@ public class AskyFilterJsonConverterCollectionTests
     {
         var filterRuleJson = """
                              {
-                                 "fieldId": "item.name",
+                                 "fieldId": "array.name",
                                  "operator": "contains",
                                  "value": "item-1-1"
                              }
@@ -22,7 +22,7 @@ public class AskyFilterJsonConverterCollectionTests
         var filterRule = FilterRule.FromJson(filterRuleJson, new EntityFieldMap());
 
         filterRule.Should().NotBeNull();
-        filterRule.Should().BeEquivalentTo(FilterRule.Contains("item.name", "item-1-1"));
+        filterRule.Should().BeEquivalentTo(FilterRule.Contains("array.name", "item-1-1"));
     }
 
     [Test]
@@ -30,7 +30,7 @@ public class AskyFilterJsonConverterCollectionTests
     {
         var filterRuleJson = """
                              {
-                                 "fieldId": "item.name",
+                                 "fieldId": "property.name",
                                  "operator": "in",
                                  "values": ["item-1-1"]
                              }
@@ -38,15 +38,15 @@ public class AskyFilterJsonConverterCollectionTests
         var filterRule = FilterRule.FromJson(filterRuleJson, new EntityFieldMap());
 
         filterRule.Should().NotBeNull();
-        filterRule.Should().BeEquivalentTo(FilterRule.In("item.name", new[] { "item-1-1" }));
+        filterRule.Should().BeEquivalentTo(FilterRule.In("property.name", new[] { "item-1-1" }));
     }
-    
+
     [Test]
     public void WhenOperatorNotIn_FilterByCollection_ShouldProperlyResolveType()
     {
         var filterRuleJson = """
                              {
-                                 "fieldId": "item.name",
+                                 "fieldId": "property.name",
                                  "operator": "!in",
                                  "values": ["item-1-1"]
                              }
@@ -54,18 +54,19 @@ public class AskyFilterJsonConverterCollectionTests
         var filterRule = FilterRule.FromJson(filterRuleJson, new EntityFieldMap());
 
         filterRule.Should().NotBeNull();
-        filterRule.Should().BeEquivalentTo(FilterRule.NotIn("item.name", new[] { "item-1-1" }));
+        filterRule.Should().BeEquivalentTo(FilterRule.NotIn("property.name", new[] { "item-1-1" }));
     }
 
     private class EntityFieldMap : IAskyFieldMap<Entity>
     {
         public Expression<Func<Entity, object>> this[string fieldId] => fieldId switch
         {
-            "item.name" => x => x.Items.Select(i => i.Name),
+            "array.name" => x => x.Items.Select(i => i.Name),
+            "property.name" => x => x.Property,
             _ => throw new ArgumentOutOfRangeException(),
         };
     }
 
-    private record Entity(IEnumerable<Item> Items);
+    private record Entity(IEnumerable<Item> Items, string Property);
     private record Item(string Name);
 }
