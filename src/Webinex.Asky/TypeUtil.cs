@@ -4,6 +4,9 @@ internal static class TypeUtil
 {
     public static Type GetGenericEnumerableImplValueType(Type collectionType)
     {
+        if (collectionType == typeof(string))
+            return typeof(string);
+        
         if (collectionType.IsInterface && collectionType.IsConstructedGenericType &&
             collectionType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
             return collectionType.GetGenericArguments()[0];
