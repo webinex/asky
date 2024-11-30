@@ -11,12 +11,11 @@ internal static class FilterExpressions
         var parameter = Expression.Parameter(typeof(TEntity));
         var valueType = LambdaExpressions.ReturnType(selector);
         var propertyExpression = LambdaExpressions.Accessor(selector, parameter);
-        var valueExpression = Expression.Constant(value, valueType);
 
         return Expression.Lambda<Func<TEntity, bool>>(
             Expression.Equal(
                 propertyExpression,
-                valueExpression),
+                WrapValueToContainerMember(value, valueType)),
             parameter);
     }
 
@@ -49,7 +48,7 @@ internal static class FilterExpressions
         return Expression.Lambda<Func<TEntity, bool>>(
             Expression.Call(
                 containsMethodInfo,
-                Expression.Constant(typedValues, typeof(IEnumerable<>).MakeGenericType(valueType)),
+                WrapValueToContainerMember(typedValues, typeof(IEnumerable<>).MakeGenericType(valueType)),
                 propertyAccessExpression
             ),
             parameter);
@@ -74,7 +73,7 @@ internal static class FilterExpressions
         return Expression.Lambda<Func<TEntity, bool>>(
             Expression.LessThanOrEqual(
                 propertyAccessExpression,
-                Expression.Constant(value, valueType)),
+                WrapValueToContainerMember(value, valueType)),
             parameter);
     }
 
@@ -89,7 +88,7 @@ internal static class FilterExpressions
         return Expression.Lambda<Func<TEntity, bool>>(
             Expression.LessThan(
                 propertyAccessExpression,
-                Expression.Constant(value, valueType)),
+                WrapValueToContainerMember(value, valueType)),
             parameter);
     }
 
@@ -104,7 +103,7 @@ internal static class FilterExpressions
         return Expression.Lambda<Func<TEntity, bool>>(
             Expression.GreaterThanOrEqual(
                 propertyAccessExpression,
-                Expression.Constant(value, valueType)),
+                WrapValueToContainerMember(value, valueType)),
             parameter);
     }
 
@@ -119,7 +118,7 @@ internal static class FilterExpressions
         return Expression.Lambda<Func<TEntity, bool>>(
             Expression.GreaterThan(
                 propertyAccessExpression,
-                Expression.Constant(value, valueType)),
+                WrapValueToContainerMember(value, valueType)),
             parameter);
     }
 
@@ -143,7 +142,7 @@ internal static class FilterExpressions
             throw new InvalidOperationException();
         }
 
-        var valueConstantExpression = Expression.Constant(value, typeof(string));
+        var valueConstantExpression = WrapValueToContainerMember(value, typeof(string));
         var containsResultExpression = Expression.Call(propertyAccessExpression, method, valueConstantExpression);
         return Expression.Lambda<Func<TEntity, bool>>(containsResultExpression, parameter);
     }
@@ -170,7 +169,7 @@ internal static class FilterExpressions
         LambdaExpression predicate)
     {
         var collectionValueType = LambdaExpressions.ReturnCollectionValueType(selector);
-        
+
         var anyMethod = typeof(Enumerable).GetMethods()
             .Where(x => x.Name == nameof(Enumerable.Any)).Single(x => x.GetParameters().Length == 2)
             .MakeGenericMethod(collectionValueType);
@@ -187,7 +186,7 @@ internal static class FilterExpressions
         LambdaExpression predicate)
     {
         var collectionValueType = LambdaExpressions.ReturnCollectionValueType(selector);
-        
+
         var anyMethod = typeof(Enumerable).GetMethods()
             .Where(x => x.Name == nameof(Enumerable.All)).Single(x => x.GetParameters().Length == 2)
             .MakeGenericMethod(collectionValueType);
@@ -197,5 +196,51 @@ internal static class FilterExpressions
 
         var methodCallExpression = Expression.Call(null, anyMethod, new[] { propertyAccessExpression, predicate });
         return Expression.Lambda<Func<TEntity, bool>>(methodCallExpression, parameter);
+    }
+
+    /// <summary>
+    /// It make sense to wrap value to container instead of using Expression.Constant directly, because in this case,
+    /// tools like Entity Framework later will be able to optimize it.
+    /// </summary>
+    private static MemberExpression WrapValueToContainerMember(object value, Type type)
+    {
+        var vc = CreateContainerInstance(type, value);
+        return Expression.MakeMemberAccess(
+            Expression.Constant(vc),
+            vc.GetType().GetMember(nameof(ValueContainer<object>.Value)).First());
+    }
+
+    private static object CreateContainerInstance(Type type, object value)
+    {
+        // Here we have condition for commonly used types.
+        // This might help to avoid calling Activator.CreateInstance,
+        // because it's much slower (+ allocates significant number of memory)
+        if (type == typeof(bool)) return new ValueContainer<bool>((bool)value);
+        if (type == typeof(char)) return new ValueContainer<char>((char)value);
+        if (type == typeof(string)) return new ValueContainer<string>((string)value);
+        if (type == typeof(short)) return new ValueContainer<short>((short)value);
+        if (type == typeof(int)) return new ValueContainer<int>((int)value);
+        if (type == typeof(long)) return new ValueContainer<long>((long)value);
+        if (type == typeof(double)) return new ValueContainer<double>((double)value);
+        if (type == typeof(float)) return new ValueContainer<float>((float)value);
+        if (type == typeof(decimal)) return new ValueContainer<decimal>((decimal)value);
+        if (type == typeof(Guid)) return new ValueContainer<Guid>((Guid)value);
+        if (type == typeof(DateTimeOffset)) return new ValueContainer<DateTimeOffset>((DateTimeOffset)value);
+        if (type == typeof(DateTime)) return new ValueContainer<DateTime>((DateTime)value);
+
+        return Activator.CreateInstance(typeof(ValueContainer<>).MakeGenericType(type), new[] { value });
+    }
+
+    /// <summary>
+    /// It make no sense to use struct here, because it will be anyway allocated in the heap
+    /// </summary>
+    private sealed class ValueContainer<TValue>
+    {
+        public readonly TValue Value;
+
+        public ValueContainer(TValue value)
+        {
+            Value = value;
+        }
     }
 }
