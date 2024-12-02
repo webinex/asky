@@ -1,26 +1,13 @@
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Webinex.Asky;
 
 internal static class FilterExpressions
 {
-    private static readonly ConcurrentDictionary<Type, Func<object, object>> ValueContainerFactoriesCache = new()
-    {
-        [typeof(string)] = v => new ValueContainer<string>((string)v),
-        [typeof(bool)] = v => new ValueContainer<bool>((bool)v),
-        [typeof(char)] = v => new ValueContainer<char>((char)v),
-        [typeof(string)] = v => new ValueContainer<string>((string)v),
-        [typeof(short)] = v => new ValueContainer<short>((short)v),
-        [typeof(int)] = v => new ValueContainer<int>((int)v),
-        [typeof(long)] = v => new ValueContainer<long>((long)v),
-        [typeof(double)] = v => new ValueContainer<double>((double)v),
-        [typeof(float)] = v => new ValueContainer<float>((float)v),
-        [typeof(decimal)] = v => new ValueContainer<decimal>((decimal)v),
-        [typeof(Guid)] = v => new ValueContainer<Guid>((Guid)v),
-        [typeof(DateTimeOffset)] = v => new ValueContainer<DateTimeOffset>((DateTimeOffset)v),
-        [typeof(DateTime)] = v => new ValueContainer<DateTime>((DateTime)v),
-    };
+    private static readonly ConcurrentDictionary<Type, (Func<object, object> accessor, MemberInfo memberInfo)>
+        ValueContainerFactoriesCache = new();
 
     public static Expression<Func<TEntity, bool>> Eq<TEntity>(
         Expression<Func<TEntity, object>> selector,
@@ -222,34 +209,21 @@ internal static class FilterExpressions
     /// </summary>
     private static MemberExpression WrapValueToContainerMember(object value, Type type)
     {
-        var accessor = ValueContainerFactoriesCache.GetOrAdd(type, (Type t) =>
+        var (accessor, memberInfo) = ValueContainerFactoriesCache.GetOrAdd(type, (Type t) =>
         {
             var param = Expression.Parameter(typeof(object));
-            var ctorInfo = typeof(ValueContainer<>).MakeGenericType(t)
-                .GetConstructor(new[] { t }) ?? throw new ArgumentNullException();
+            var containerType = typeof(Tuple<>).MakeGenericType(t);
+            var ctorInfo = containerType.GetConstructor(new[] { t }) ?? throw new InvalidOperationException();
 
-            var expression = Expression.Lambda<Func<object, object>>(
-                Expression.New(ctorInfo, new[] { Expression.Convert(param, t) }),
-                new[] { param });
-            return expression.Compile();
+            var accessor = Expression.Lambda<Func<object, object>>(
+                Expression.New(ctorInfo, Expression.Convert(param, t)),
+                param);
+            var memberInfo = containerType.GetMember(nameof(Tuple<object>.Item1)).First();
+            
+            return (accessor.Compile(), memberInfo);
         });
 
         var containerInstance = accessor(value);
-        return Expression.MakeMemberAccess(
-            Expression.Constant(containerInstance),
-            containerInstance.GetType().GetMember(nameof(ValueContainer<object>.Value)).First());
-    }
-
-    /// <summary>
-    /// It make no sense to use struct here, because it will be anyway allocated in the heap
-    /// </summary>
-    private sealed class ValueContainer<TValue>
-    {
-        public readonly TValue Value;
-
-        public ValueContainer(TValue value)
-        {
-            Value = value;
-        }
+        return Expression.MakeMemberAccess(Expression.Constant(containerInstance), memberInfo);
     }
 }
