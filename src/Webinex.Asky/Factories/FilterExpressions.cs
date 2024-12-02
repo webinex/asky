@@ -1,9 +1,27 @@
+using System.Collections.Concurrent;
 using System.Linq.Expressions;
 
 namespace Webinex.Asky;
 
 internal static class FilterExpressions
 {
+    private static readonly ConcurrentDictionary<Type, Func<object, object>> ValueContainerFactoriesCache = new()
+    {
+        [typeof(string)] = v => new ValueContainer<string>((string)v),
+        [typeof(bool)] = v => new ValueContainer<bool>((bool)v),
+        [typeof(char)] = v => new ValueContainer<char>((char)v),
+        [typeof(string)] = v => new ValueContainer<string>((string)v),
+        [typeof(short)] = v => new ValueContainer<short>((short)v),
+        [typeof(int)] = v => new ValueContainer<int>((int)v),
+        [typeof(long)] = v => new ValueContainer<long>((long)v),
+        [typeof(double)] = v => new ValueContainer<double>((double)v),
+        [typeof(float)] = v => new ValueContainer<float>((float)v),
+        [typeof(decimal)] = v => new ValueContainer<decimal>((decimal)v),
+        [typeof(Guid)] = v => new ValueContainer<Guid>((Guid)v),
+        [typeof(DateTimeOffset)] = v => new ValueContainer<DateTimeOffset>((DateTimeOffset)v),
+        [typeof(DateTime)] = v => new ValueContainer<DateTime>((DateTime)v),
+    };
+
     public static Expression<Func<TEntity, bool>> Eq<TEntity>(
         Expression<Func<TEntity, object>> selector,
         object value)
@@ -204,31 +222,22 @@ internal static class FilterExpressions
     /// </summary>
     private static MemberExpression WrapValueToContainerMember(object value, Type type)
     {
-        var vc = CreateContainerInstance(type, value);
+        var accessor = ValueContainerFactoriesCache.GetOrAdd(type, (Type t) =>
+        {
+            var param = Expression.Parameter(typeof(object));
+            var ctorInfo = typeof(ValueContainer<>).MakeGenericType(t)
+                .GetConstructor(new[] { t }) ?? throw new ArgumentNullException();
+
+            var expression = Expression.Lambda<Func<object, object>>(
+                Expression.New(ctorInfo, new[] { Expression.Convert(param, t) }),
+                new[] { param });
+            return expression.Compile();
+        });
+
+        var containerInstance = accessor(value);
         return Expression.MakeMemberAccess(
-            Expression.Constant(vc),
-            vc.GetType().GetMember(nameof(ValueContainer<object>.Value)).First());
-    }
-
-    private static object CreateContainerInstance(Type type, object value)
-    {
-        // Here we have condition for commonly used types.
-        // This might help to avoid calling Activator.CreateInstance,
-        // because it's much slower (+ allocates significant number of memory)
-        if (type == typeof(bool)) return new ValueContainer<bool>((bool)value);
-        if (type == typeof(char)) return new ValueContainer<char>((char)value);
-        if (type == typeof(string)) return new ValueContainer<string>((string)value);
-        if (type == typeof(short)) return new ValueContainer<short>((short)value);
-        if (type == typeof(int)) return new ValueContainer<int>((int)value);
-        if (type == typeof(long)) return new ValueContainer<long>((long)value);
-        if (type == typeof(double)) return new ValueContainer<double>((double)value);
-        if (type == typeof(float)) return new ValueContainer<float>((float)value);
-        if (type == typeof(decimal)) return new ValueContainer<decimal>((decimal)value);
-        if (type == typeof(Guid)) return new ValueContainer<Guid>((Guid)value);
-        if (type == typeof(DateTimeOffset)) return new ValueContainer<DateTimeOffset>((DateTimeOffset)value);
-        if (type == typeof(DateTime)) return new ValueContainer<DateTime>((DateTime)value);
-
-        return Activator.CreateInstance(typeof(ValueContainer<>).MakeGenericType(type), new[] { value });
+            Expression.Constant(containerInstance),
+            containerInstance.GetType().GetMember(nameof(ValueContainer<object>.Value)).First());
     }
 
     /// <summary>
