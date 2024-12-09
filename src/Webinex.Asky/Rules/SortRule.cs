@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 namespace Webinex.Asky;
@@ -56,6 +57,31 @@ public class SortRule : EqualityComparable
         options ??= DEFAULT_JSON_SERIALIZER_OPTIONS;
 
         return JsonSerializer.Deserialize<SortRule[]>(jsonString!, options);
+    }
+
+    public static IReadOnlyCollection<SortRule>? FromJson(JsonNode? jNode, JsonSerializerOptions? options = null)
+    {
+        if (jNode == null)
+            return null;
+        
+        options ??= DEFAULT_JSON_SERIALIZER_OPTIONS;
+
+        if (jNode is JsonArray jArray)
+            return jArray.Deserialize<IReadOnlyCollection<SortRule>>(options);
+
+        if (jNode is JsonObject jObject)
+            return new[] { jObject.Deserialize<SortRule>(options) };
+        
+        throw new ArgumentException("Expected array or object", nameof(jNode));
+    }
+
+    public static IReadOnlyCollection<SortRule>? FromJson(JsonElement? jElement, JsonSerializerOptions? options)
+    {
+        if (jElement == null)
+            return null;
+        
+        var jNode = JsonNode.Parse(jElement.Value.GetRawText())!;
+        return FromJson(jNode, options);
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()
