@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 namespace Webinex.Asky;
@@ -145,11 +146,26 @@ public abstract class FilterRule : EqualityComparable
             return null;
         }
 
-        var options = new JsonSerializerOptions(DEFAULT_JSON_SERIALIZER_OPTIONS)
+        var options = GetJsonSerializerOptions(fieldMap);
+        return JsonSerializer.Deserialize<FilterRule>(jsonString!, options);
+    }
+    
+    public static FilterRule? FromJson<TEntity>(JsonElement? jsonElement, IAskyFieldMap<TEntity> fieldMap)
+    {
+        return jsonElement != null ? FromJson(jsonElement.Value.GetRawText(), fieldMap) : null;
+    }
+
+    public static FilterRule? FromJson<TEntity>(JsonNode? jsonNode, IAskyFieldMap<TEntity> fieldMap)
+    {
+        var options = GetJsonSerializerOptions(fieldMap);
+        return jsonNode?.Deserialize<FilterRule>(options);
+    }
+    
+    private static JsonSerializerOptions GetJsonSerializerOptions<TEntity>(IAskyFieldMap<TEntity> fieldMap)
+    {
+        return new JsonSerializerOptions(DEFAULT_JSON_SERIALIZER_OPTIONS)
         {
             Converters = { new AskyFilterJsonConverter<TEntity>(fieldMap) },
         };
-
-        return JsonSerializer.Deserialize<FilterRule>(jsonString!, options);
     }
 }
