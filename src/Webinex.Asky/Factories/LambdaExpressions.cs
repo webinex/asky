@@ -50,6 +50,18 @@ internal static class LambdaExpressions
         }
     }
 
+    public static bool IsSelectExpression<TEntity>(Expression<Func<TEntity, object>> selector)
+    {
+        selector = selector ?? throw new ArgumentNullException(nameof(selector));
+
+        if (selector.Body is not MethodCallExpression methodCallExpression)
+            return false;
+
+        return methodCallExpression.Method.IsGenericMethod &&
+               typeof(Enumerable).GetMethods().Where(x => x.Name == nameof(Enumerable.Select))
+                   .Contains(methodCallExpression.Method.GetGenericMethodDefinition());
+    }
+
     internal static Type ReturnCollectionValueType<TEntity>(Expression<Func<TEntity, object>> selector)
     {
         selector = selector ?? throw new ArgumentNullException(nameof(selector));
