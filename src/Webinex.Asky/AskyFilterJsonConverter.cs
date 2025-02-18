@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Linq.Expressions;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Webinex.Asky;
@@ -84,7 +85,9 @@ public class AskyFilterJsonConverter<T> : JsonConverter<FilterRule>
             throw new InvalidOperationException($"No field map specified for field {filterBase.FieldId}");
         }
 
-        return LambdaExpressions.ReturnType(expression);
+        return LambdaExpressions.IsSelectExpression(expression)
+            ? LambdaExpressions.ReturnCollectionValueType(expression)
+            : LambdaExpressions.ReturnType(expression);
     }
 
     public override void Write(Utf8JsonWriter writer, FilterRule value, JsonSerializerOptions options)
