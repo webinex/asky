@@ -169,6 +169,48 @@ internal static class FilterExpressions
             containsExpression.Parameters);
     }
 
+    public static Expression<Func<TEntity, bool>> StartsWith<TEntity>(
+        Expression<Func<TEntity, object>> selector,
+        object value)
+    {
+        var valueType = LambdaExpressions.ReturnType(selector);
+        if (valueType != typeof(string))
+        {
+            throw new InvalidOperationException(
+                $"Starts with operator available only for string type. Received: {valueType.FullName}");
+        }
+
+        var parameter = Expression.Parameter(typeof(TEntity));
+        var propertyAccessExpression = LambdaExpressions.Accessor(selector, parameter);
+
+        var method = typeof(string).GetMethod(nameof(string.StartsWith), new[] { typeof(string) });
+        if (method == null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        var valueConstantExpression = WrapValueToContainerMember(value, typeof(string));
+        var startsWithResultExpression = Expression.Call(propertyAccessExpression, method, valueConstantExpression);
+        return Expression.Lambda<Func<TEntity, bool>>(startsWithResultExpression, parameter);
+    }
+
+    public static Expression<Func<TEntity, bool>> NotStartsWith<TEntity>(
+        Expression<Func<TEntity, object>> selector,
+        object value)
+    {
+        var valueType = LambdaExpressions.ReturnType(selector);
+        if (valueType != typeof(string))
+        {
+            throw new InvalidOperationException(
+                $"Not starts with operator available only for string type. Received: {valueType.FullName}");
+        }
+
+        var startsWithExpression = StartsWith(selector, value);
+        return Expression.Lambda<Func<TEntity, bool>>(
+            Expression.Not(startsWithExpression.Body),
+            startsWithExpression.Parameters);
+    }
+
     public static Expression<Func<TEntity, bool>> Any<TEntity>(
         Expression<Func<TEntity, object>> selector,
         LambdaExpression predicate)

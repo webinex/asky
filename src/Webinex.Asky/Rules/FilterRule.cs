@@ -79,6 +79,26 @@ public abstract class FilterRule : EqualityComparable
         return new ValueFilterRule(fieldId, FilterOperator.NOT_CONTAINS, value);
     }
 
+    public static ValueFilterRule StartsWith(string fieldId, object value)
+    {
+        return new ValueFilterRule(fieldId, FilterOperator.STARTS_WITH, value);
+    }
+
+    public static ValueFilterRule StartsWith(string fieldId, string value)
+    {
+        return new ValueFilterRule(fieldId, FilterOperator.STARTS_WITH, value);
+    }
+
+    public static ValueFilterRule NotStartsWith(string fieldId, object value)
+    {
+        return new ValueFilterRule(fieldId, FilterOperator.NOT_STARTS_WITH, value);
+    }
+
+    public static ValueFilterRule NotStartsWith(string fieldId, string value)
+    {
+        return new ValueFilterRule(fieldId, FilterOperator.NOT_STARTS_WITH, value);
+    }
+
     public static CollectionFilterRule In<T>(string fieldId, T[] values)
     {
         return new CollectionFilterRule(fieldId, FilterOperator.IN, values.Cast<object>().ToArray());

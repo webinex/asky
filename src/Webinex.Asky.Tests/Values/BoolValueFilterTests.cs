@@ -82,6 +82,8 @@ internal class BoolValueFilterTests : ValueFilterTestsBase<bool>
     [TestCase(FilterOperator.LTE)]
     [TestCase(FilterOperator.CONTAINS)]
     [TestCase(FilterOperator.NOT_CONTAINS)]
+    [TestCase(FilterOperator.STARTS_WITH)]
+    [TestCase(FilterOperator.NOT_STARTS_WITH)]
     public void WhenInvalidOperator_ShouldThrow(string @operator)
     {
         WithValues(true, false);

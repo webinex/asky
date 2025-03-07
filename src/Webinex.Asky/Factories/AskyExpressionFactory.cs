@@ -63,6 +63,8 @@ public static class AskyExpressionFactory
             LT => FilterExpressions.Lt(selector, value),
             CONTAINS => FilterExpressions.Contains(selector, value),
             NOT_CONTAINS => FilterExpressions.NotContains(selector, value),
+            STARTS_WITH => FilterExpressions.StartsWith(selector, value),
+            NOT_STARTS_WITH => FilterExpressions.NotStartsWith(selector, value),
             _ => throw new ArgumentOutOfRangeException(nameof(filter.Operator)),
         };
     }
