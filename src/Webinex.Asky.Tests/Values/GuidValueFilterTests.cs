@@ -51,6 +51,8 @@ internal class GuidValueFilterTests : ValueFilterTestsBase<Guid>
 
     [TestCase(FilterOperator.CONTAINS)]
     [TestCase(FilterOperator.NOT_CONTAINS)]
+    [TestCase(FilterOperator.STARTS_WITH)]
+    [TestCase(FilterOperator.NOT_STARTS_WITH)]
     public void WhenInvalidOperator_ShouldThrow(string @operator)
     {
         WithValues(Guid.NewGuid(), Guid.NewGuid());

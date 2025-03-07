@@ -64,4 +64,24 @@ internal class StringValueFilterTests : ValueFilterTestsBase<string>
 
         Result.Should().BeEquivalentTo(Values[0], Values[2]);
     }
+
+    [Test]
+    public void WhenStartsWith()
+    {
+        WithValues("a", "b", "aa", "bb");
+
+        Run(FilterRule.StartsWith(FieldId, "a"));
+
+        Result.Should().BeEquivalentTo(Values[0], Values[2]);
+    }
+
+    [Test]
+    public void WhenNotStartsWith()
+    {
+        WithValues("a", "b", "aa", "bb");
+
+        Run(FilterRule.NotStartsWith(FieldId, "a"));
+
+        Result.Should().BeEquivalentTo(Values[1], Values[3]);
+    }
 }

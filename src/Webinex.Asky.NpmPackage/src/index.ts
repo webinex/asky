@@ -6,7 +6,7 @@ export type FilterRule<T = string> =
 
 export interface ValueFilterRule<T = string, TValue = any> {
   fieldId: T;
-  operator: '=' | '!=' | '>' | '>=' | '<' | '<=' | 'contains' | '!contains' | 'any' | 'all';
+  operator: '=' | '!=' | '>' | '>=' | '<' | '<=' | 'contains' | '!contains' | 'any' | 'all' | 'startsWith' | '!startsWith';
   value: TValue;
 }
 

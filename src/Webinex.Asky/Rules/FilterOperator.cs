@@ -16,10 +16,12 @@ public static class FilterOperator
     public const string NOT_IN = "!in";
     public const string ANY = "any";
     public const string ALL = "all";
+    public const string STARTS_WITH = "startsWith";
+    public const string NOT_STARTS_WITH = "!startsWith";
 
     public static readonly HashSet<string> ALL_VALUES = new()
     {
-        EQ, NOT_EQ, GTE, GT, LTE, LT, CONTAINS, NOT_CONTAINS,
+        EQ, NOT_EQ, GTE, GT, LTE, LT, CONTAINS, NOT_CONTAINS, STARTS_WITH, NOT_STARTS_WITH,
     };
 
     public static readonly HashSet<string> ALL_BOOL = new()

@@ -89,6 +89,8 @@ internal abstract class DecimalValueFilterTestsBase<T> : ValueFilterTestsBase<T>
 
     [TestCase(FilterOperator.CONTAINS)]
     [TestCase(FilterOperator.NOT_CONTAINS)]
+    [TestCase(FilterOperator.STARTS_WITH)]
+    [TestCase(FilterOperator.NOT_STARTS_WITH)]
     public void WhenInvalidOperator_ShouldThrow(string @operator)
     {
         WithValues(Value(1.3), Value(2.4));
@@ -97,7 +99,7 @@ internal abstract class DecimalValueFilterTestsBase<T> : ValueFilterTestsBase<T>
     }
 
     protected T Value(double value) =>
-        (T)Convert.ChangeType(value.ToString(CultureInfo.InvariantCulture), typeof(T));
+        (T)Convert.ChangeType(value.ToString(CultureInfo.InvariantCulture), typeof(T), CultureInfo.InvariantCulture);
 }
 
 internal class DecimalValueFilterTests : DecimalValueFilterTestsBase<decimal>
