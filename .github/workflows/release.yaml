@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish-dotnet:
+    name: Publish .NET Packages
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: ./src/global.json
+
+      - name: Publish
+        run: ./scripts/Publish-NugetPackages.ps1 -ApiKey "${{ secrets.NUGET_API_KEY }}"
+        shell: pwsh
+
+  publish-npm:
+    name: Publish NPM Packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+          always-auth: true
+          scope: '@webinex'
+
+      - name: Install Dependencies
+        run: yarn install
+        working-directory: src/Webinex.Asky.NpmPackage
+
+      - name: Build
+        run: yarn build
+        working-directory: src/Webinex.Asky.NpmPackage
+
+      - name: Publish
+        run: yarn publish --access public
+        working-directory: src/Webinex.Asky.NpmPackage
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
