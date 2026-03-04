@@ -36,6 +36,7 @@ jobs:
       - name: Deploy docs
         working-directory: docs
         env:
-          GIT_USER: github-actions[bot]
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_USER: webinex
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          USE_SSH: false
         run: yarn deploy
