@@ -36,8 +36,8 @@ jobs:
         working-directory: src
         run: dotnet test Webinex.Asky.Tests/Webinex.Asky.Tests.csproj --configuration Release --no-build --verbosity normal
 
-  build-react:
-    name: Build React
+  build-npm:
+    name: Build Npm Package
     runs-on: ubuntu-latest
 
     steps:
