@@ -39,6 +39,22 @@ public class SortRule : EqualityComparable
         return new SortRule(fieldId, SortDir.Desc);
     }
 
+    protected override IEnumerable<object?> GetEqualityComponents()
+    {
+        yield return Dir;
+        yield return FieldId;
+    }
+
+    public static bool operator ==(SortRule? left, SortRule? right)
+    {
+        return EqualOperator(left, right);
+    }
+
+    public static bool operator !=(SortRule? left, SortRule? right)
+    {
+        return NotEqualOperator(left, right);
+    }
+    
     public static SortRule? FromJson(string? jsonString, JsonSerializerOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(jsonString))
@@ -66,37 +82,26 @@ public class SortRule : EqualityComparable
         
         options ??= DEFAULT_JSON_SERIALIZER_OPTIONS;
 
-        if (jNode is JsonArray jArray)
-            return jArray.Deserialize<IReadOnlyCollection<SortRule>>(options);
-
-        if (jNode is JsonObject jObject)
-            return new[] { jObject.Deserialize<SortRule>(options) };
-        
-        throw new ArgumentException("Expected array or object", nameof(jNode));
+        return jNode switch
+        {
+            JsonArray jArray => jArray.Deserialize<IReadOnlyCollection<SortRule>>(options),
+            JsonObject jObject => [jObject.Deserialize<SortRule>(options)],
+            _ => throw new ArgumentException("Expected array or object", nameof(jNode))
+        };
     }
 
     public static IReadOnlyCollection<SortRule>? FromJson(JsonElement? jElement, JsonSerializerOptions? options)
     {
-        if (jElement == null)
+        options ??= DEFAULT_JSON_SERIALIZER_OPTIONS;
+        
+        if (jElement == null || jElement.Value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
             return null;
         
-        var jNode = JsonNode.Parse(jElement.Value.GetRawText())!;
-        return FromJson(jNode, options);
-    }
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return Dir;
-        yield return FieldId;
-    }
-
-    public static bool operator ==(SortRule? left, SortRule? right)
-    {
-        return EqualOperator(left, right);
-    }
-
-    public static bool operator !=(SortRule? left, SortRule? right)
-    {
-        return NotEqualOperator(left, right);
+        return jElement.Value.ValueKind switch
+        {
+            JsonValueKind.Array => jElement.Value.Deserialize<IReadOnlyCollection<SortRule>>(options),
+            JsonValueKind.Object => [jElement.Value.Deserialize<SortRule>(options)],
+            _ => throw new ArgumentException("Expected array or object", nameof(jElement))
+        };
     }
 }

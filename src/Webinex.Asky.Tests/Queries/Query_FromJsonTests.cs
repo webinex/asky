@@ -3,6 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -61,9 +62,60 @@ public class Query_FromJsonTests
     }
 
     [Test]
-    public void WhenNull_ShouldBeOk()
+    public void WhenNullJsonElement_ShouldBeOk()
     {
-        Query.FromJson(null, TestValueAskyFieldMap.Instance).Should().BeNull();
+        Query.FromJson((JsonElement?)null, TestValueAskyFieldMap.Instance).Should().BeNull();
+    }
+
+    [Test]
+    public void WhenNullJsonObject_ShouldBeOk()
+    {
+        Query.FromJson((JsonObject?)null, TestValueAskyFieldMap.Instance).Should().BeNull();
+    }
+
+    [Test]
+    public void WhenJsonObjectWithAliases_ShouldBeOk()
+    {
+        var jObject = JsonNode.Parse("""
+                                     {
+                                        "filter": {
+                                            "fieldId": "name",
+                                            "operator": "=",
+                                            "value": "John"
+                                        },
+                                        "sort": [
+                                            { "fieldId": "name", "dir": "asc" },
+                                            { "fieldId": "id", "dir": "desc" }
+                                        ],
+                                        "paging": {
+                                            "skip": 5,
+                                            "take": 10
+                                        }
+                                     }
+                                     """)!.AsObject();
+
+        var query = Query.FromJson(jObject, TestValueAskyFieldMap.Instance);
+
+        query.Should().NotBeNull();
+        query!.FilterRule.Should().BeEquivalentTo(FilterRule.Eq("name", "John"));
+        query.SortRule.Should().BeEquivalentTo(
+            new[]
+            {
+                SortRule.Asc("name"),
+                SortRule.Desc("id"),
+            });
+        query.PagingRule.Should().BeEquivalentTo(new PagingRule(5, 10));
+    }
+
+    [Test]
+    public void WhenJsonNodeIsNotObject_ShouldThrow()
+    {
+        var jNode = JsonNode.Parse("""["not-an-object"]""");
+
+        var action = () => Query.FromJson(jNode, TestValueAskyFieldMap.Instance);
+
+        action.Should().Throw<InvalidOperationException>()
+            .WithMessage("Expected JsonObject*");
     }
     
     [Test]

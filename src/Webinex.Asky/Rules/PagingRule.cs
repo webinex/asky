@@ -54,11 +54,12 @@ public class PagingRule : EqualityComparable
 
     public static PagingRule? FromJson(JsonElement? jElement, JsonSerializerOptions? options = null)
     {
-        if (jElement == null)
+        options ??= DEFAULT_JSON_SERIALIZER_OPTIONS;
+        
+        if (jElement == null || jElement.Value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
             return null;
 
-        var jNode = JsonNode.Parse(jElement.Value.GetRawText());
-        return FromJson(jNode, options);
+        return jElement.Value.Deserialize<PagingRule>(options);
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()
