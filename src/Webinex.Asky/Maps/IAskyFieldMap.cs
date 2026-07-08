@@ -4,7 +4,7 @@ namespace Webinex.Asky;
 
 public interface IAskyFieldMap<T>
 {
-    Expression<Func<T, object>>? this[string fieldId] { get; }
+    Expression<Func<T, object?>>? this[string fieldId] { get; }
 }
 
 public static class AskyFieldMapExtensions
