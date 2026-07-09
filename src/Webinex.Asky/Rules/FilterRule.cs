@@ -290,9 +290,7 @@ public abstract class FilterRule : EqualityComparable
     public static FilterRule? FromJson(string? jsonString, JsonSerializerOptions options)
     {
         if (string.IsNullOrWhiteSpace(jsonString))
-        {
             return null;
-        }
 
         return JsonSerializer.Deserialize<FilterRule>(jsonString!, options);
     }
