@@ -4,7 +4,7 @@ namespace Webinex.Asky;
 
 public static class AskyFieldMap
 {
-    public static Expression<Func<TParent, object>>? Forward<TParent, TChild>(
+    public static Expression<Func<TParent, object?>>? Forward<TParent, TChild>(
         Expression<Func<TParent, TChild>> selector,
         IAskyFieldMap<TChild> childMap,
         string fieldId)
