@@ -28,6 +28,15 @@ public class Query
 
     public bool IsEmpty() => FilterRule == null && (SortRule == null || !SortRule.Any()) && PagingRule == null;
 
+    public static Query? FromJson<T>(string? jsonString, IAskyFieldMap<T> fieldMap, JsonSerializerOptions? options)
+    {
+        if (string.IsNullOrWhiteSpace(jsonString))
+            return null;
+
+        var jNode = JsonNode.Parse(jsonString);
+        return FromJson(jNode, fieldMap, options);
+    }
+
     public static Query? FromJson<T>(
         JsonElement? jElement,
         IAskyFieldMap<T> fieldMap,
@@ -53,7 +62,6 @@ public class Query
 
         return new Query(filterRule, sortRule?.ToArray(), pagingRule);
     }
-    
     
     public static Query? FromJson<T>(
         JsonNode? jNode,
